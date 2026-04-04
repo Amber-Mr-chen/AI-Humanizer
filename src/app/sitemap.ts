@@ -14,5 +14,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.8,
     },
+    {
+      url: 'https://aihumanizer.life/history',
+      lastModified: new Date(),
+      changeFrequency: 'never',
+      priority: 0.3,
+    },
   ];
 }

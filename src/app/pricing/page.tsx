@@ -151,6 +151,38 @@ export default function PricingPage() {
             ))}
           </div>
         </div>
+        {/* FAQ JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: [
+              {
+                '@type': 'Question',
+                name: 'Is it really free?',
+                acceptedAnswer: { '@type': 'Answer', text: 'Yes. Free users get 1,000 characters per day with no credit card required.' },
+              },
+              {
+                '@type': 'Question',
+                name: 'Can it bypass AI detectors?',
+                acceptedAnswer: { '@type': 'Answer', text: 'Our humanizer significantly reduces AI detection scores on GPTZero, Turnitin, and similar tools.' },
+              },
+              {
+                '@type': 'Question',
+                name: 'What payment methods do you accept?',
+                acceptedAnswer: { '@type': 'Answer', text: 'We accept PayPal for subscriptions.' },
+              },
+              {
+                '@type': 'Question',
+                name: 'Can I cancel anytime?',
+                acceptedAnswer: { '@type': 'Answer', text: 'Yes. Cancel your Pro subscription anytime from PayPal. No questions asked.' },
+              },
+            ],
+          }),
+        }}
+      />
       </div>
     </div>
   );

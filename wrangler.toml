@@ -10,7 +10,7 @@ binding = "ASSETS"
 [[d1_databases]]
 binding = "DB"
 database_name = "ai-humanizer-db"
-database_id = "placeholder"
+database_id = "38bf6457-d0c9-474a-ab24-3346504d96a9"
 
 [vars]
 NEXTAUTH_URL = "https://aihumanizer.life"

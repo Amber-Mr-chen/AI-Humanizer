@@ -5,7 +5,14 @@ import { updateUserPlan } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body = await req.json() as {
+      event_type: string;
+      resource?: {
+        id?: string;
+        plan_id?: string;
+        subscriber?: { email_address?: string };
+      };
+    };
     const eventType = body.event_type;
 
     const { env } = await getCloudflareContext();

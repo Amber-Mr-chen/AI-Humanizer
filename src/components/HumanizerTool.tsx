@@ -38,7 +38,7 @@ export default function HumanizerTool() {
         body: JSON.stringify({ text: input, mode }),
       });
 
-      const data = await res.json();
+      const data = await res.json() as { error?: string; result?: string; charCount?: number };
 
       if (!res.ok) {
         if (data.error === 'daily_limit_exceeded') {
@@ -53,7 +53,7 @@ export default function HumanizerTool() {
         return;
       }
 
-      setOutput(data.result);
+      setOutput(data.result ?? '');
     } catch {
       setError('Network error. Please try again.');
     } finally {

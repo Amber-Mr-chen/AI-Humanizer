@@ -20,7 +20,7 @@ async function getPayPalToken(): Promise<string> {
     },
     body: 'grant_type=client_credentials',
   });
-  const data = await res.json();
+  const data = await res.json() as { access_token: string };
   return data.access_token;
 }
 
@@ -52,8 +52,8 @@ export async function GET(req: NextRequest) {
       }),
     });
 
-    const data = await res.json();
-    const approveLink = data.links?.find((l: any) => l.rel === 'approve')?.href;
+    const data = await res.json() as { links?: { rel: string; href: string }[] };
+    const approveLink = data.links?.find((l) => l.rel === 'approve')?.href;
 
     if (approveLink) {
       return NextResponse.redirect(approveLink);

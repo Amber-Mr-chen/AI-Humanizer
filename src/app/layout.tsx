@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL('https://aihumanizer.life'),
   alternates: { canonical: 'https://aihumanizer.life' },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AI Humanizer - Free Online Tool to Humanize AI Text',
+    description: 'Make AI-generated text sound natural and human. Free to use.',
+  },
 };
 
 export default function RootLayout({
