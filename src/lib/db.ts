@@ -59,7 +59,10 @@ export async function getOrCreateUser(
 
 // 获取用户当前有效计划
 export function getEffectivePlan(user: User): 'free' | 'pro' {
-  if (user.plan === 'pro' && user.pro_expires_at) {
+  if (user.plan === 'pro') {
+    // 没有到期时间 = 永久Pro
+    if (!user.pro_expires_at) return 'pro';
+    // 有到期时间，检查是否过期
     const now = Math.floor(Date.now() / 1000);
     if (now < user.pro_expires_at) return 'pro';
   }
