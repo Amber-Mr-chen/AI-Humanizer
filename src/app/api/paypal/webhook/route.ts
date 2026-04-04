@@ -3,9 +3,55 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { updateUserPlan } from '@/lib/db';
 
+const PAYPAL_API = 'https://api-m.paypal.com';
+const WEBHOOK_ID = '6N700294D1010462K';
+
+async function getPayPalAccessToken(): Promise<string> {
+  const clientId = process.env.PAYPAL_CLIENT_ID!;
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET!;
+  const res = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+    },
+    body: 'grant_type=client_credentials',
+  });
+  const data = await res.json() as { access_token: string };
+  return data.access_token;
+}
+
+async function verifyWebhookSignature(
+  headers: Headers,
+  rawBody: string,
+  accessToken: string
+): Promise<boolean> {
+  const payload = {
+    auth_algo: headers.get('paypal-auth-algo') ?? '',
+    cert_url: headers.get('paypal-cert-url') ?? '',
+    transmission_id: headers.get('paypal-transmission-id') ?? '',
+    transmission_sig: headers.get('paypal-transmission-sig') ?? '',
+    transmission_time: headers.get('paypal-transmission-time') ?? '',
+    webhook_id: WEBHOOK_ID,
+    webhook_event: JSON.parse(rawBody),
+  };
+  const res = await fetch(`${PAYPAL_API}/v1/notifications/verify-webhook-signature`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json() as { verification_status: string };
+  return data.verification_status === 'SUCCESS';
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as {
+    // 先读取原始body（验证签名必须用原始字符串）
+    const rawBody = await req.text();
+    const body = JSON.parse(rawBody) as {
       event_type: string;
       resource?: {
         id?: string;
@@ -14,6 +60,14 @@ export async function POST(req: NextRequest) {
       };
     };
     const eventType = body.event_type;
+
+    // 验证PayPal签名
+    const accessToken = await getPayPalAccessToken();
+    const isValid = await verifyWebhookSignature(req.headers, rawBody, accessToken);
+    if (!isValid) {
+      console.warn('PayPal webhook signature verification failed');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
 
     const { env } = await getCloudflareContext();
     const db = env.DB as D1Database;
