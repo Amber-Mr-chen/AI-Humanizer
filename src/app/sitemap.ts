@@ -20,5 +20,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'never',
       priority: 0.3,
     },
+    {
+      url: 'https://aihumanizer.life/privacy',
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: 'https://aihumanizer.life/terms',
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
   ];
 }

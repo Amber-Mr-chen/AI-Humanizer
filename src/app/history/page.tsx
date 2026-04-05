@@ -22,12 +22,12 @@ export default async function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-violet-950 py-12 px-4">
+    <div className="min-h-screen bg-white py-12 px-4">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-8">History</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">History</h1>
 
         {history.length === 0 ? (
-          <div className="text-center py-16 text-white/40">
+          <div className="text-center py-16 text-gray-400">
             <p className="text-lg">No history yet.</p>
             <p className="text-sm mt-2">Start humanizing text to see your history here.</p>
           </div>
@@ -36,24 +36,24 @@ export default async function HistoryPage() {
             {history.map((item) => (
               <div
                 key={item.id}
-                className="bg-white/5 border border-white/10 rounded-xl p-5"
+                className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs bg-violet-500/20 text-violet-300 px-2 py-1 rounded-full capitalize">
+                  <span className="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full capitalize font-medium">
                     {item.mode}
                   </span>
-                  <span className="text-xs text-white/40">
+                  <span className="text-xs text-gray-400">
                     {new Date(item.created_at * 1000).toLocaleString()}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-white/40 mb-1">Input</p>
-                    <p className="text-sm text-white/70 line-clamp-3">{item.input_text}</p>
+                    <p className="text-xs text-gray-400 mb-1">Input</p>
+                    <p className="text-sm text-gray-600 line-clamp-3">{item.input_text}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-white/40 mb-1">Output</p>
-                    <p className="text-sm text-white/70 line-clamp-3">{item.output_text}</p>
+                    <p className="text-xs text-gray-400 mb-1">Output</p>
+                    <p className="text-sm text-gray-600 line-clamp-3">{item.output_text}</p>
                   </div>
                 </div>
               </div>
