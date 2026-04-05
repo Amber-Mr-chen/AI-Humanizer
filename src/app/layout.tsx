@@ -1,20 +1,20 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
 import './globals.css';
-import { SessionProvider } from 'next-auth/react';
+import Providers from '@/components/Providers';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
 const geist = Geist({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AI Humanizer - Free Online Tool to Humanize AI Text',
+  title: 'AI Humanizer - Polish & Refine AI-Generated Text',
   description:
-    'Free AI Humanizer tool. Make AI-generated text undetectable. Paste your AI content and get natural, human-like text instantly. Works for essays, blogs, and more.',
-  keywords: 'ai humanizer, humanize ai text, ai text humanizer, free ai humanizer, undetectable ai',
+    'Free AI Humanizer tool. Transform robotic AI-generated text into natural, engaging, human-quality writing. Perfect for essays, blogs, emails and more.',
+  keywords: 'ai humanizer, humanize ai text, ai text rewriter, ai writing polish, improve ai writing, ai text refiner',
   openGraph: {
-    title: 'AI Humanizer - Free Online Tool to Humanize AI Text',
-    description: 'Make AI-generated text sound natural and human. Free to use.',
+    title: 'AI Humanizer - Polish & Refine AI-Generated Text',
+    description: 'Transform AI-generated text into natural, human-quality writing. Free to use.',
     url: 'https://aihumanizer.life',
     siteName: 'AI Humanizer',
     type: 'website',
@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://aihumanizer.life' },
   twitter: {
     card: 'summary_large_image',
-    title: 'AI Humanizer - Free Online Tool to Humanize AI Text',
-    description: 'Make AI-generated text sound natural and human. Free to use.',
+    title: 'AI Humanizer - Polish & Refine AI-Generated Text',
+    description: 'Transform AI-generated text into natural, human-quality writing. Free to use.',
   },
 };
 
@@ -35,12 +35,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${geist.className} bg-gray-950 text-white min-h-screen flex flex-col`}>
-        <SessionProvider>
+      <body className={`${geist.className} bg-white text-gray-900 min-h-screen flex flex-col`}>
+        <Providers>
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
-        </SessionProvider>
+        </Providers>
       </body>
     </html>
   );

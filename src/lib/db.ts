@@ -8,6 +8,7 @@ export interface User {
   plan: 'free' | 'pro';
   pro_expires_at: number | null;
   trial_used: number;
+  refund_used: number;
   created_at: number;
 }
 
@@ -77,6 +78,16 @@ export async function getUserUsageToday(db: D1Database, userId: string): Promise
     .bind(userId, today)
     .first<{ char_count: number }>();
   return record?.char_count ?? 0;
+}
+
+// 获取本月已用字符数（登录用户）
+export async function getUserUsageThisMonth(db: D1Database, userId: string): Promise<number> {
+  const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+  const record = await db
+    .prepare("SELECT SUM(char_count) as total FROM usage WHERE user_id = ? AND date LIKE ?")
+    .bind(userId, `${month}-%`)
+    .first<{ total: number | null }>();
+  return record?.total ?? 0;
 }
 
 // 获取今日已用字符数（游客IP）

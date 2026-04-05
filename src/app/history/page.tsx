@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { auth } from '@/lib/auth';
+import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getUserHistory } from '@/lib/db';
@@ -9,14 +9,14 @@ export const metadata: Metadata = {
 };
 
 export default async function HistoryPage() {
-  const session = await auth();
+  const session = await getServerSession();
   if (!session?.user) redirect('/');
 
   let history: any[] = [];
   try {
     const { env } = await getCloudflareContext();
     const db = env.DB as D1Database;
-    history = await getUserHistory(db, session.user.id ?? session.user.email!);
+    history = await getUserHistory(db, (session.user as any).id ?? session.user.email!);
   } catch {
     // dev environment fallback
   }

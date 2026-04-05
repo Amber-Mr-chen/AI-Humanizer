@@ -7,12 +7,13 @@ import {
   getOrCreateUser,
   getEffectivePlan,
   getUserUsageToday,
+  getUserUsageThisMonth,
   getIpUsageToday,
   addUsage,
   saveHistory,
 } from '@/lib/db';
-import { canHumanize, LIMITS } from '@/lib/usage';
-import { auth } from '@/lib/auth';
+import { canHumanize, canHumanizeMonthly, LIMITS, MONTHLY_LIMITS } from '@/lib/usage';
+import { getServerSession } from 'next-auth';
 
 const ADMIN_EMAIL = 'wanglilong616@gmail.com';
 
@@ -20,7 +21,11 @@ export async function POST(req: NextRequest) {
   try {
     const { env } = await getCloudflareContext();
     const db = env.DB as D1Database;
-    const ai = (env as any).AI;
+    const apiKey = (env as any).SILICONFLOW_API_KEY as string | undefined;
+
+    if (!apiKey) {
+      return NextResponse.json({ error: 'System configuration error' }, { status: 500 });
+    }
 
     const body = await req.json();
     const { text, mode = 'standard' } = body as { text: string; mode?: HumanizeMode };
@@ -42,7 +47,7 @@ export async function POST(req: NextRequest) {
     const charCount = trimmed.length;
 
     // 获取用户会话
-    const session = await auth();
+    const session = await getServerSession();
     const userEmail = session?.user?.email;
     const isAdmin = userEmail === ADMIN_EMAIL;
 
@@ -53,7 +58,7 @@ export async function POST(req: NextRequest) {
     if (userEmail && db) {
       // 登录用户
       const user = await getOrCreateUser(db, {
-        id: session!.user!.id ?? userEmail,
+        id: (session!.user as any).id ?? userEmail,
         email: userEmail,
         name: session?.user?.name ?? undefined,
         avatar: session?.user?.image ?? undefined,
@@ -88,7 +93,7 @@ export async function POST(req: NextRequest) {
 
       // 调用AI
       const prompt = getHumanizePrompt(mode, trimmed);
-      const result = await callAI(ai, prompt);
+      const result = await callAI(prompt, apiKey);
 
       // 记录用量
       if (db && ip !== 'unknown') {
@@ -98,25 +103,41 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ result, charCount });
     }
 
-    // 登录用户额度检查
-    if (!isAdmin && !canHumanize(plan as 'free' | 'pro', usedToday, charCount)) {
-      const limit = plan === 'free' ? LIMITS.free : LIMITS.guest;
-      return NextResponse.json(
-        {
-          error: 'daily_limit_exceeded',
-          message: plan === 'free'
-            ? 'Daily limit reached. Upgrade to Pro for unlimited access.'
-            : 'Daily limit reached. Sign in for more characters.',
-          limit,
-          used: usedToday,
-        },
-        { status: 429 }
-      );
+    // Admin跳过所有限制
+    if (!isAdmin) {
+      // 每日额度检查（免费用户）
+      if (plan === 'free' && !canHumanize('free', usedToday, charCount)) {
+        return NextResponse.json(
+          {
+            error: 'daily_limit_exceeded',
+            message: 'Daily limit reached. Upgrade to Pro for unlimited access.',
+            limit: LIMITS.free,
+            used: usedToday,
+          },
+          { status: 429 }
+        );
+      }
+
+      // Pro月度额度检查
+      if (plan === 'pro' && db && userId) {
+        const usedThisMonth = await getUserUsageThisMonth(db, userId);
+        if (!canHumanizeMonthly(usedThisMonth, charCount)) {
+          return NextResponse.json(
+            {
+              error: 'monthly_limit_exceeded',
+              message: `Monthly limit of ${(MONTHLY_LIMITS.pro / 1000).toFixed(0)}k characters reached. Resets on the 1st of next month.`,
+              limit: MONTHLY_LIMITS.pro,
+              used: usedThisMonth,
+            },
+            { status: 429 }
+          );
+        }
+      }
     }
 
     // 调用AI
     const prompt = getHumanizePrompt(mode, trimmed);
-    const result = await callAI(ai, prompt);
+    const result = await callAI(prompt, apiKey);
 
     // 记录用量和历史
     if (db && userId) {
@@ -137,16 +158,30 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function callAI(ai: any, prompt: string): Promise<string> {
-  if (!ai) {
-    // 开发环境fallback（没有Cloudflare AI时）
-    return `[Demo] This is a humanized version of your text. Deploy to Cloudflare to enable real AI processing.`;
+async function callAI(prompt: string, apiKey: string | undefined): Promise<string> {
+  if (!apiKey) {
+    return `[Demo] This is a humanized version of your text. Configure SILICONFLOW_API_KEY to enable real AI processing.`;
   }
 
-  const response = await ai.run('@cf/meta/llama-3.1-8b-instruct', {
-    messages: [{ role: 'user', content: prompt }],
-    max_tokens: 2048,
+  const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'Qwen/Qwen2.5-72B-Instruct',
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: prompt }],
+    }),
   });
 
-  return response?.response?.trim() ?? '';
+  if (!response.ok) {
+    const err = await response.text();
+    console.error('SiliconFlow API error:', response.status, err);
+    throw new Error(`SiliconFlow API error: ${response.status}`);
+  }
+
+  const data = await response.json() as { choices: Array<{ message: { content: string } }> };
+  return data.choices?.[0]?.message?.content?.trim() ?? '';
 }

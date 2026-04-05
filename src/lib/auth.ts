@@ -1,30 +1,27 @@
-// lib/auth.ts - NextAuth配置
+// lib/auth.ts - NextAuth v4 helper exports
+import { NextAuthOptions } from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
 
-import NextAuth from 'next-auth';
-import Google from 'next-auth/providers/google';
-
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
-    Google({
+    GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async session({ session, token }) {
-      if (session.user && token.sub) {
-        session.user.id = token.sub;
+      if (session.user) {
+        (session.user as any).id = token.sub;
       }
       return session;
     },
-    async jwt({ token, account }) {
-      if (account) {
-        token.sub = account.providerAccountId;
-      }
-      return token;
-    },
   },
+  // 强制指定登录地址，避免重定向到 localhost
   pages: {
-    signIn: '/',
+    signIn: '/api/auth/signin',
   },
-});
+};
+
+export { getServerSession } from 'next-auth';

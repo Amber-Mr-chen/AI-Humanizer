@@ -41,7 +41,7 @@ export default function HumanizerTool() {
       const data = await res.json() as { error?: string; result?: string; charCount?: number };
 
       if (!res.ok) {
-        if (data.error === 'daily_limit_exceeded') {
+        if (data.error === 'daily_limit_exceeded' || data.error === 'monthly_limit_exceeded') {
           if (!session) {
             setShowLoginModal(true);
           } else {
@@ -61,6 +61,15 @@ export default function HumanizerTool() {
     }
   };
 
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setInput(text);
+    } catch {
+      // Clipboard access denied
+    }
+  };
+
   const handleCopy = () => {
     if (!output) return;
     navigator.clipboard.writeText(output);
@@ -70,16 +79,17 @@ export default function HumanizerTool() {
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4">
+
       {/* Mode Selector */}
-      <div className="flex gap-2 mb-4 flex-wrap">
+      <div className="flex gap-2 mb-5 flex-wrap">
         {MODES.map((m) => (
           <button
             key={m.value}
             onClick={() => setMode(m.value)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
               mode === m.value
-                ? 'bg-violet-600 text-white shadow-md'
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
+                ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
+                : 'bg-white text-gray-600 border-gray-300 hover:border-violet-400 hover:text-violet-600'
             }`}
           >
             {m.label}
@@ -89,47 +99,77 @@ export default function HumanizerTool() {
       </div>
 
       {/* Editor Area */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
         {/* Input */}
         <div className="flex flex-col">
-          <div className="flex justify-between items-center mb-2">
-            <label className="text-sm text-white/70">Paste AI-generated text</label>
-            <span className="text-xs text-white/50">{charCount} characters</span>
-          </div>
+          <label className="text-sm font-medium text-gray-700 mb-2">Your AI text</label>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Paste your AI-generated text here..."
-            className="flex-1 min-h-[300px] bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/30 resize-none focus:outline-none focus:border-violet-400 transition-colors"
+            className="flex-1 min-h-[600px] bg-white border border-gray-300 rounded-xl p-4 text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-400 transition-colors"
           />
+          {/* Input 按钮行 */}
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-xs text-gray-400">{charCount} characters</span>
+            <div className="flex gap-2">
+              {input && (
+                <button
+                  onClick={() => setInput('')}
+                  className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-500 rounded-lg border border-gray-200 hover:border-red-200 transition-all"
+                >
+                  ✕ Clear
+                </button>
+              )}
+              <button
+                onClick={handlePaste}
+                className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-violet-50 text-gray-600 hover:text-violet-600 rounded-lg border border-gray-200 hover:border-violet-200 transition-all"
+              >
+                📋 Paste
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Output */}
         <div className="flex flex-col">
-          <div className="flex justify-between items-center mb-2">
-            <label className="text-sm text-white/70">Humanized text</label>
-            {output && (
-              <button
-                onClick={handleCopy}
-                className="text-xs text-violet-300 hover:text-violet-100 transition-colors"
-              >
-                {copied ? '✓ Copied!' : 'Copy'}
-              </button>
-            )}
-          </div>
+          <label className="text-sm font-medium text-gray-700 mb-2">Humanized result</label>
           <textarea
             ref={outputRef}
             value={output}
             readOnly
-            placeholder={loading ? 'Humanizing...' : 'Humanized text will appear here...'}
-            className="flex-1 min-h-[300px] bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/30 resize-none focus:outline-none"
+            placeholder={loading ? 'Humanizing your text...' : 'Your humanized text will appear here...'}
+            className="flex-1 min-h-[600px] bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900 placeholder-gray-400 resize-none focus:outline-none"
           />
+          {/* Output 按钮行 */}
+          <div className="flex items-center justify-end gap-2 mt-2">
+            {output && (
+              <button
+                onClick={() => setOutput('')}
+                className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-500 rounded-lg border border-gray-200 hover:border-red-200 transition-all"
+              >
+                ✕ Clear
+              </button>
+            )}
+            <button
+              onClick={handleCopy}
+              disabled={!output}
+              className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
+                output
+                  ? 'bg-violet-50 hover:bg-violet-100 text-violet-600 border-violet-200 hover:border-violet-300'
+                  : 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed'
+              }`}
+            >
+              {copied ? '✓ Copied!' : '📄 Copy'}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Error */}
       {error && (
-        <p className="mt-3 text-red-400 text-sm text-center">{error}</p>
+        <p className="mt-3 text-red-500 text-sm text-center">{error}</p>
       )}
 
       {/* Humanize Button */}
@@ -137,7 +177,7 @@ export default function HumanizerTool() {
         <button
           onClick={handleHumanize}
           disabled={loading || !input.trim()}
-          className="px-10 py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-full text-lg transition-all shadow-lg hover:shadow-violet-500/30"
+          className="px-12 py-3 bg-violet-600 hover:bg-violet-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-full text-lg transition-all shadow-md hover:shadow-lg"
         >
           {loading ? (
             <span className="flex items-center gap-2">
@@ -156,18 +196,18 @@ export default function HumanizerTool() {
       {/* Login Modal */}
       {showLoginModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
-          <div className="bg-gray-900 border border-white/10 rounded-2xl p-8 max-w-md w-full text-center">
-            <h3 className="text-xl font-bold text-white mb-2">Daily limit reached</h3>
-            <p className="text-white/60 mb-6">Sign in for free to get 1,000 characters/day — 3× more!</p>
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Daily limit reached</h3>
+            <p className="text-gray-500 mb-6">Sign in for free to get 1,000 characters/day — 3× more!</p>
             <button
               onClick={() => signIn('google')}
-              className="w-full py-3 bg-white text-gray-900 font-semibold rounded-full hover:bg-gray-100 transition-colors"
+              className="w-full py-3 bg-violet-600 text-white font-semibold rounded-full hover:bg-violet-700 transition-colors"
             >
               Sign in with Google
             </button>
             <button
               onClick={() => setShowLoginModal(false)}
-              className="mt-3 text-sm text-white/40 hover:text-white/60"
+              className="mt-3 text-sm text-gray-400 hover:text-gray-600"
             >
               Not now
             </button>
@@ -178,18 +218,18 @@ export default function HumanizerTool() {
       {/* Upgrade Modal */}
       {showUpgradeModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
-          <div className="bg-gray-900 border border-white/10 rounded-2xl p-8 max-w-md w-full text-center">
-            <h3 className="text-xl font-bold text-white mb-2">Daily limit reached</h3>
-            <p className="text-white/60 mb-6">Upgrade to Pro for unlimited humanization every day.</p>
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Limit reached</h3>
+            <p className="text-gray-500 mb-6">Upgrade to Pro for up to 200,000 characters per month.</p>
             <a
               href="/pricing"
-              className="block w-full py-3 bg-violet-600 text-white font-semibold rounded-full hover:bg-violet-500 transition-colors"
+              className="block w-full py-3 bg-violet-600 text-white font-semibold rounded-full hover:bg-violet-700 transition-colors"
             >
               Upgrade to Pro
             </a>
             <button
               onClick={() => setShowUpgradeModal(false)}
-              className="mt-3 text-sm text-white/40 hover:text-white/60"
+              className="mt-3 text-sm text-gray-400 hover:text-gray-600"
             >
               Not now
             </button>

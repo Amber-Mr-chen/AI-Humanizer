@@ -119,6 +119,32 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 退款处理：每账号仅限一次，防止重复薅羊毛
+    if (eventType === 'PAYMENT.CAPTURE.REFUNDED') {
+      const email = (body.resource as { custom_id?: string })?.custom_id
+        ?? body.resource?.subscriber?.email_address;
+      if (email) {
+        const user = await db
+          .prepare('SELECT refund_used, pro_expires_at FROM users WHERE email = ?')
+          .bind(email)
+          .first<{ refund_used: number; pro_expires_at: number | null }>();
+
+        if (user) {
+          if (user.refund_used === 1) {
+            // 已用过退款一次，不降级，记录争议
+            console.warn('[Webhook] Duplicate refund attempt for:', email);
+          } else {
+            // 第一次退款：降级为Free，标记refund_used
+            await db
+              .prepare('UPDATE users SET plan = ?, pro_expires_at = ?, refund_used = 1 WHERE email = ?')
+              .bind('free', null, email)
+              .run();
+            console.log('[Webhook] User refunded and downgraded:', email);
+          }
+        }
+      }
+    }
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('Webhook error:', error);
