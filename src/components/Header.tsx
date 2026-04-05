@@ -184,7 +184,10 @@ export default function Header() {
                           </Link>
                         )}
                         <button
-                          onClick={() => signOut()}
+                          onClick={async () => {
+                            await signOut({ redirect: false });
+                            window.location.reload();
+                          }}
                           className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors w-full text-left"
                         >
                           <span>🚪</span> Sign out

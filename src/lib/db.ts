@@ -139,13 +139,13 @@ export async function saveHistory(
     .run();
 }
 
-// 获取用户历史记录（最近20条）
-export async function getUserHistory(db: D1Database, userId: string): Promise<HistoryRecord[]> {
+// 获取用户历史记录
+export async function getUserHistory(db: D1Database, userId: string, limit: number = 10, offset: number = 0): Promise<HistoryRecord[]> {
   const results = await db
     .prepare(
-      'SELECT * FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT 20'
+      'SELECT * FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?'
     )
-    .bind(userId)
+    .bind(userId, limit, offset)
     .all<HistoryRecord>();
   return results.results;
 }

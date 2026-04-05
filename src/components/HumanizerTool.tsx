@@ -108,7 +108,7 @@ export default function HumanizerTool() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Paste your AI-generated text here..."
-            className="flex-1 min-h-[600px] bg-white border border-gray-300 rounded-xl p-4 text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-400 transition-colors"
+            className="flex-1 min-h-[300px] md:min-h-[600px] bg-white border border-gray-300 rounded-xl p-4 text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-400 transition-colors"
           />
           {/* Input 按钮行 */}
           <div className="flex items-center justify-between mt-2">
@@ -138,7 +138,7 @@ export default function HumanizerTool() {
 
           {loading ? (
             /* Skeleton loading */
-            <div className="flex-1 min-h-[600px] bg-gray-50 border border-gray-200 rounded-xl p-4 overflow-hidden">
+            <div className="flex-1 min-h-[300px] md:min-h-[600px] bg-gray-50 border border-gray-200 rounded-xl p-4 overflow-hidden">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-4 h-4 rounded-full bg-violet-200 animate-pulse" />
                 <div className="h-3 w-32 bg-violet-100 rounded animate-pulse" />
@@ -165,7 +165,7 @@ export default function HumanizerTool() {
               value={output}
               readOnly
               placeholder="Your humanized text will appear here..."
-              className="flex-1 min-h-[600px] bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900 placeholder-gray-400 resize-none focus:outline-none"
+              className="flex-1 min-h-[300px] md:min-h-[600px] bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900 placeholder-gray-400 resize-none focus:outline-none"
             />
           )}
 

@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { sendEmail } from '@/lib/email';
 
 const handler = NextAuth({
   providers: [
@@ -22,21 +23,34 @@ const handler = NextAuth({
         const db = (ctx.env as any).DB;
         if (!db) return true;
 
-        await db
-          .prepare(
-            `INSERT INTO users (id, email, name, avatar, plan, trial_used)
-             VALUES (?, ?, ?, ?, 'free', 0)
-             ON CONFLICT(email) DO UPDATE SET name=excluded.name, avatar=excluded.avatar`
-          )
-          .bind(user.id ?? email, email, name, avatar)
-          .run();
-
-        const row = await db
-          .prepare('SELECT plan, trial_used FROM users WHERE email = ?')
+        const existing = await db
+          .prepare('SELECT id, trial_used FROM users WHERE email = ?')
           .bind(email)
-          .first() as { plan: string; trial_used: number } | null;
+          .first() as { id: string; trial_used: number } | null;
 
-        if (row && row.trial_used === 0 && row.plan === 'free') {
+        if (!existing) {
+          // 新注册用户
+          await db
+            .prepare(
+              `INSERT INTO users (id, email, name, avatar, plan, trial_used, pro_expires_at)
+               VALUES (?, ?, ?, ?, 'pro', 1, ?)`
+            )
+            .bind(user.id ?? email, email, name, avatar, Math.floor(Date.now() / 1000) + 3 * 24 * 60 * 60)
+            .run();
+
+          // 发送欢迎邮件
+          await sendEmail(
+            email,
+            'Welcome to AI Humanizer! ✦',
+            `
+            <h1>Welcome, ${name}!</h1>
+            <p>You now have 3 days of Pro access to AI Humanizer.</p>
+            <p>Try our three writing modes: Standard, Academic, and Creative.</p>
+            <a href="https://aihumanizer.life" style="padding: 12px 24px; background: #7c3aed; color: #fff; text-decoration: none; border-radius: 20px;">Start Writing</a>
+            `
+          );
+        } else if (existing.trial_used === 0) {
+          // 之前注册但没触发过试用的用户（兜底）
           const trialExpiry = Math.floor(Date.now() / 1000) + 3 * 24 * 60 * 60;
           await db
             .prepare('UPDATE users SET plan=?, pro_expires_at=?, trial_used=1 WHERE email=?')
