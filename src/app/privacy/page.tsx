@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Privacy Policy - AI Humanizer',
   description: 'Privacy Policy for AI Humanizer. Learn how we collect, use, and protect your personal data.',
+  alternates: { canonical: 'https://aihumanizer.life/privacy' },
 };
 
 export default function PrivacyPage() {

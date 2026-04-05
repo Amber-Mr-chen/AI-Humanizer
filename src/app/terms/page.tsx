@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Terms of Service - AI Humanizer',
   description: 'Terms of Service for AI Humanizer. Read our terms before using the service.',
+  alternates: { canonical: 'https://aihumanizer.life/terms' },
 };
 
 export default function TermsPage() {

@@ -135,13 +135,40 @@ export default function HumanizerTool() {
         {/* Output */}
         <div className="flex flex-col">
           <label className="text-sm font-medium text-gray-700 mb-2">Humanized result</label>
-          <textarea
-            ref={outputRef}
-            value={output}
-            readOnly
-            placeholder={loading ? 'Humanizing your text...' : 'Your humanized text will appear here...'}
-            className="flex-1 min-h-[600px] bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900 placeholder-gray-400 resize-none focus:outline-none"
-          />
+
+          {loading ? (
+            /* Skeleton loading */
+            <div className="flex-1 min-h-[600px] bg-gray-50 border border-gray-200 rounded-xl p-4 overflow-hidden">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-4 h-4 rounded-full bg-violet-200 animate-pulse" />
+                <div className="h-3 w-32 bg-violet-100 rounded animate-pulse" />
+              </div>
+              <div className="space-y-3">
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-full" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-11/12" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-4/5" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-full" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-11/12" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-full" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-5/6" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-full" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-11/12" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4" />
+              </div>
+              <p className="text-xs text-violet-400 mt-6 text-center animate-pulse">Humanizing your text...</p>
+            </div>
+          ) : (
+            <textarea
+              ref={outputRef}
+              value={output}
+              readOnly
+              placeholder="Your humanized text will appear here..."
+              className="flex-1 min-h-[600px] bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900 placeholder-gray-400 resize-none focus:outline-none"
+            />
+          )}
+
           {/* Output 按钮行 */}
           <div className="flex items-center justify-end gap-2 mt-2">
             {output && (
