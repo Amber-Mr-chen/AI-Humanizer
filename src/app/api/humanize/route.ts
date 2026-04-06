@@ -14,6 +14,7 @@ import {
 } from '@/lib/db';
 import { canHumanize, canHumanizeMonthly, LIMITS, MONTHLY_LIMITS } from '@/lib/usage';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 const ADMIN_EMAIL = 'wanglilong616@gmail.com';
 
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
     const charCount = trimmed.length;
 
     // 获取用户会话
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     const userEmail = session?.user?.email;
     const isAdmin = userEmail === ADMIN_EMAIL;
 
