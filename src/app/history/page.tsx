@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getUserHistory } from '@/lib/db';
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HistoryPage({ searchParams }: { searchParams: { page?: string } }) {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   if (!session?.user) redirect('/');
 
   const page = parseInt(searchParams.page || '1');
