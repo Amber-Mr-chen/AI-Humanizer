@@ -15,12 +15,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: 'https://aihumanizer.life/history',
-      lastModified: new Date(),
-      changeFrequency: 'never',
-      priority: 0.3,
-    },
-    {
       url: 'https://aihumanizer.life/privacy',
       lastModified: new Date(),
       changeFrequency: 'yearly',
