@@ -1,0 +1,16 @@
+name: Pro Expiry Cron
+
+on:
+  schedule:
+    # 每天早上8点(UTC) = 下午4点(北京时间) 执行一次
+    - cron: '0 8 * * *'
+  workflow_dispatch:  # 支持手动触发
+
+jobs:
+  expiry-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call expiry cron endpoint
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" \
+            "https://aihumanizer.life/api/cron/expiry?secret=aihumanizer-cron-2026"
