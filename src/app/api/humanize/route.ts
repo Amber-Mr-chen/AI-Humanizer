@@ -16,7 +16,6 @@ import { canHumanize, canHumanizeMonthly, LIMITS, MONTHLY_LIMITS } from '@/lib/u
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-const ADMIN_EMAIL = 'wanglilong616@gmail.com';
 
 export async function POST(req: NextRequest) {
   try {
@@ -50,7 +49,6 @@ export async function POST(req: NextRequest) {
     // 获取用户会话
     const session = await getServerSession(authOptions);
     const userEmail = session?.user?.email;
-    const isAdmin = userEmail === ADMIN_EMAIL;
 
     let plan: 'guest' | 'free' | 'pro' = 'guest';
     let userId: string | null = null;
@@ -104,35 +102,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ result, charCount });
     }
 
-    // Admin跳过所有限制
-    if (!isAdmin) {
-      // 每日额度检查（免费用户）
-      if (plan === 'free' && !canHumanize('free', usedToday, charCount)) {
+    // 每日额度检查（免费用户）
+    if (plan === 'free' && !canHumanize('free', usedToday, charCount)) {
+      return NextResponse.json(
+        {
+          error: 'daily_limit_exceeded',
+          message: 'Daily limit reached. Upgrade to Pro for unlimited access.',
+          limit: LIMITS.free,
+          used: usedToday,
+        },
+        { status: 429 }
+      );
+    }
+
+    // Pro月度额度检查
+    if (plan === 'pro' && db && userId) {
+      const usedThisMonth = await getUserUsageThisMonth(db, userId);
+      if (!canHumanizeMonthly(usedThisMonth, charCount)) {
         return NextResponse.json(
           {
-            error: 'daily_limit_exceeded',
-            message: 'Daily limit reached. Upgrade to Pro for unlimited access.',
-            limit: LIMITS.free,
-            used: usedToday,
+            error: 'monthly_limit_exceeded',
+            message: `Monthly limit of ${(MONTHLY_LIMITS.pro / 1000).toFixed(0)}k characters reached. Resets on the 1st of next month.`,
+            limit: MONTHLY_LIMITS.pro,
+            used: usedThisMonth,
           },
           { status: 429 }
         );
-      }
-
-      // Pro月度额度检查
-      if (plan === 'pro' && db && userId) {
-        const usedThisMonth = await getUserUsageThisMonth(db, userId);
-        if (!canHumanizeMonthly(usedThisMonth, charCount)) {
-          return NextResponse.json(
-            {
-              error: 'monthly_limit_exceeded',
-              message: `Monthly limit of ${(MONTHLY_LIMITS.pro / 1000).toFixed(0)}k characters reached. Resets on the 1st of next month.`,
-              limit: MONTHLY_LIMITS.pro,
-              used: usedThisMonth,
-            },
-            { status: 429 }
-          );
-        }
       }
     }
 

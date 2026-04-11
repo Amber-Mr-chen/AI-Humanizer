@@ -12,8 +12,6 @@ import {
 } from '@/lib/db';
 import { LIMITS, MONTHLY_LIMITS } from '@/lib/usage';
 
-const ADMIN_EMAIL = 'wanglilong616@gmail.com';
-
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
@@ -30,8 +28,7 @@ export async function GET() {
     avatar: session.user.image ?? undefined,
   });
 
-  const isAdmin = session.user.email === ADMIN_EMAIL;
-  const effectivePlan = isAdmin ? 'pro' : getEffectivePlan(user);
+  const effectivePlan = getEffectivePlan(user);
 
   const usedToday = await getUserUsageToday(db, user.id);
   const usedThisMonth = await getUserUsageThisMonth(db, user.id);
