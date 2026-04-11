@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
         avatar: session?.user?.image ?? undefined,
       });
       userId = user.id;
-      const effectivePlan = isAdmin ? 'pro' : getEffectivePlan(user);
+      const effectivePlan = getEffectivePlan(user);
       plan = effectivePlan;
       usedToday = await getUserUsageToday(db, userId);
     } else {
