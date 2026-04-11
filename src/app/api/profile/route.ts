@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import {
   getOrCreateUser,
   getEffectivePlan,
@@ -14,7 +15,7 @@ import { LIMITS, MONTHLY_LIMITS } from '@/lib/usage';
 const ADMIN_EMAIL = 'wanglilong616@gmail.com';
 
 export async function GET() {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
