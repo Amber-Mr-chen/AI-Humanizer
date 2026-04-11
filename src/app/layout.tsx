@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import Providers from '@/components/Providers';
 import Header from '@/components/Header';
@@ -55,6 +56,18 @@ export default function RootLayout({
         />
       </head>
       <body className={`${geist.className} bg-white text-gray-900 min-h-screen flex flex-col`}>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-DLKPBMV3NB"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-DLKPBMV3NB');
+          `}
+        </Script>
         <Providers>
           <Header />
           <main className="flex-1">{children}</main>
